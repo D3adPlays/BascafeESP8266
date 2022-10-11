@@ -1,4 +1,8 @@
-# BascafeESP8266
+## CODE DE TEST
+
+Ce code n'est pas final
+
+```c++
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 #include <WiFiClient.h>
@@ -6,23 +10,30 @@
 const char* ssid = "wifi-eleves";
 const char* password = "@bascan78";
 
-//Your Domain name with URL path or IP address with path
-String serverName = "http://192.168.1.106:1880/update-capteur";
+//PIN D'ALLUMAGE MACHINE = D5
+//URL INSTALLATION CARTE (https://arduino.esp8266.com/stable/package_esp8266com_index.json)
+//TYPE DE CARTE LOLIN(WEMOS) D1 R2 & mini
 
-// the following variables are unsigned longs because the time, measured in
-// milliseconds, will quickly become a bigger number than can be stored in an int.
+//L' adresse de l'api web bascafe de l'équipe JAVA
+String serverName = "http://192.168.1.106:6969/update-cafe";
+
+//Cariable temporaire de limite de cycles de mise a jour
 unsigned long lastTime = 0;
+
+//Status de la machine 0 = éteinte et 1 = allumé
 int currStatus = 0;
-// Timer set to 10 minutes (600000)
-//unsigned long timerDelay = 600000;
-// Set timer to 5 seconds (5000)
+
+//Timer de mise a jour (En ms) de 5 secondes (5000 ms)
 unsigned long timerDelay = 5000;
 
 void setup() {
-  Serial.begin(115200); 
+  //Démarrage de la console
+  Serial.begin(115200);
 
+  //Démarrage de la care WIFI 
   WiFi.begin(ssid, password);
   Serial.println("Connecting");
+
   while(WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
@@ -36,32 +47,36 @@ void setup() {
 }
 
 void loop() {
-  // Send an HTTP POST request depending on timerDelay
+  // Attendre de délai imparti de timerDelay
   if ((millis() - lastTime) > timerDelay) {
-    //Check WiFi connection status
+    //Check le status de la connection WIFI (Au cas ou vu que le wifi lycée est bancal)
     if(WiFi.status()== WL_CONNECTED){
+      //Crécation des objets
       WiFiClient client;
       HTTPClient http;
 
+      //URL de requete
       String serverPath = serverName + "?currStatus=" + currStatus;
       
-      // Your Domain name with URL path or IP address with path
+      // Envoi de la requete avec l'objet CLIENT
       http.begin(client, serverPath.c_str());
       
-      // Send HTTP GET request
+      // demander le code de reponse html (https://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
       int httpResponseCode = http.GET();
       
       if (httpResponseCode>0) {
+        //Test du code reponse
         Serial.print("HTTP Response code: ");
         Serial.println(httpResponseCode);
         String payload = http.getString();
         Serial.println(payload);
       }
       else {
+        //Test du code d'erreur
         Serial.print("Error code: ");
         Serial.println(httpResponseCode);
       }
-      // Free resources
+      // Libération de resources de l'ESP8266
       http.end();
     }
     else {
@@ -70,3 +85,4 @@ void loop() {
     lastTime = millis();
   }
 }
+```
